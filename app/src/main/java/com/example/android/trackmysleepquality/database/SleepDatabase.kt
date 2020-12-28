@@ -30,13 +30,13 @@ abstract class SleepDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: SleepDatabase? = null
 
-        fun Context.getInstance(): SleepDatabase {
-            synchronized(this@Companion) {
+        fun getInstance(context: Context): SleepDatabase {
+            synchronized(this) {
                 var instance = INSTANCE
 
                 if (instance == null) {
                     instance = Room.databaseBuilder(
-                            applicationContext,
+                            context,
                             SleepDatabase::class.java,
                             "sleep_history_database"
                     )
