@@ -22,8 +22,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.android.trackmysleepquality.R
+import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.databinding.FragmentSleepQualityBinding
+import com.example.android.trackmysleepquality.sleepquality.SleepQualityFragmentDirections.actionSleepQualityFragmentToSleepTrackerFragment
 
 /**
  * Fragment that displays a list of clickable icons,
@@ -33,13 +38,22 @@ import com.example.android.trackmysleepquality.databinding.FragmentSleepQualityB
  */
 class SleepQualityFragment : Fragment() {
 
+    private lateinit var sleepQualityViewModel: SleepQualityViewModel
+
+    private val navigateToSleepTrackerObserver by lazy {
+        Observer<Boolean?> {
+            if (it == true)
+                navigateToSleepTrackerFragment()
+        }
+    }
+
     /**
      * Called when the Fragment is ready to display content to the screen.
      *
      * This function uses DataBindingUtil to inflate R.layout.fragment_sleep_quality.
      */
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
 
         // Get a reference to the binding object and inflate the fragment views.
         val binding: FragmentSleepQualityBinding = DataBindingUtil.inflate(
@@ -47,6 +61,46 @@ class SleepQualityFragment : Fragment() {
 
         val application = requireNotNull(this.activity).application
 
+        val arguments = SleepQualityFragmentArgs.fromBundle(arguments!!)
+
+        val dataSource = SleepDatabase.getInstance(application).sleepDatabaseDao
+
+        val viewModelFactory = SleepQualityViewModelFactory(arguments.sleepNightKey, dataSource)
+
+        sleepQualityViewModel = ViewModelProvider(this, viewModelFactory)
+                .get(SleepQualityViewModel::class.java)
+
+        binding.viewModel = sleepQualityViewModel
+        binding.lifecycleOwner = this
+
         return binding.root
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setObservers()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        removeObservers()
+    }
+
+    private fun setObservers() {
+        with(sleepQualityViewModel) {
+            navigateToSleepTracker.observe(this@SleepQualityFragment, navigateToSleepTrackerObserver)
+        }
+    }
+
+    private fun removeObservers() {
+        with(sleepQualityViewModel) {
+            navigateToSleepTracker.removeObserver(navigateToSleepTrackerObserver)
+        }
+    }
+
+    private fun navigateToSleepTrackerFragment() {
+        findNavController().navigate(actionSleepQualityFragmentToSleepTrackerFragment())
+
+        sleepQualityViewModel.doneNavigating()
     }
 }

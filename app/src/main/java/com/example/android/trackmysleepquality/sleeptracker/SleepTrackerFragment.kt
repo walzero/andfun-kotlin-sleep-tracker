@@ -22,10 +22,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.android.trackmysleepquality.R
 import com.example.android.trackmysleepquality.database.SleepDatabase
+import com.example.android.trackmysleepquality.database.SleepNight
 import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerBinding
+import com.example.android.trackmysleepquality.sleeptracker.SleepTrackerFragmentDirections.actionSleepTrackerFragmentToSleepQualityFragment
 
 /**
  * A fragment with buttons to record start and end times for sleep, which are saved in
@@ -33,6 +37,14 @@ import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerB
  * (Because we have not learned about RecyclerView yet.)
  */
 class SleepTrackerFragment : Fragment() {
+
+    private lateinit var sleepTrackerViewModel: SleepTrackerViewModel
+
+    private val navigateToSleepQualityObserver by lazy {
+        Observer<SleepNight> { night ->
+            night?.let { navigateToSleepQualityFragment(it) }
+        }
+    }
 
     /**
      * Called when the Fragment is ready to display content to the screen.
@@ -52,12 +64,41 @@ class SleepTrackerFragment : Fragment() {
 
         val viewModelFactory = SleepTrackerViewModelFactory(dataSource, application)
 
-        val sleepTrackerViewModel = ViewModelProvider(this, viewModelFactory)
+        sleepTrackerViewModel = ViewModelProvider(this, viewModelFactory)
                 .get(SleepTrackerViewModel::class.java)
 
         binding.lifecycleOwner = this
         binding.sleepTrackerViewModel = sleepTrackerViewModel
 
         return binding.root
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setObservers()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        removeObservers()
+    }
+
+    private fun setObservers() {
+        with(sleepTrackerViewModel) {
+            navigateToSleepQuality.observe(this@SleepTrackerFragment, navigateToSleepQualityObserver)
+        }
+    }
+
+    private fun removeObservers() {
+        with(sleepTrackerViewModel) {
+            navigateToSleepQuality.removeObserver(navigateToSleepQualityObserver)
+        }
+    }
+
+    private fun navigateToSleepQualityFragment(night: SleepNight) {
+        findNavController().navigate(
+                actionSleepTrackerFragmentToSleepQualityFragment(night.nightId))
+
+        sleepTrackerViewModel.doneNavigating()
     }
 }
