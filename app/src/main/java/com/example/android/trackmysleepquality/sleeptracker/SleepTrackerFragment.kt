@@ -30,6 +30,7 @@ import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.database.SleepNight
 import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerBinding
 import com.example.android.trackmysleepquality.sleeptracker.SleepTrackerFragmentDirections.actionSleepTrackerFragmentToSleepQualityFragment
+import com.google.android.material.snackbar.Snackbar
 
 /**
  * A fragment with buttons to record start and end times for sleep, which are saved in
@@ -43,6 +44,13 @@ class SleepTrackerFragment : Fragment() {
     private val navigateToSleepQualityObserver by lazy {
         Observer<SleepNight> { night ->
             night?.let { navigateToSleepQualityFragment(it) }
+        }
+    }
+
+    private val showSnackBarEvent by lazy {
+        Observer<Boolean> {
+            if(it == true)
+                presentSnackBarEvent()
         }
     }
 
@@ -86,12 +94,14 @@ class SleepTrackerFragment : Fragment() {
     private fun setObservers() {
         with(sleepTrackerViewModel) {
             navigateToSleepQuality.observe(this@SleepTrackerFragment, navigateToSleepQualityObserver)
+            showSnackbarEvent.observe(this@SleepTrackerFragment, showSnackBarEvent)
         }
     }
 
     private fun removeObservers() {
         with(sleepTrackerViewModel) {
             navigateToSleepQuality.removeObserver(navigateToSleepQualityObserver)
+            showSnackbarEvent.removeObserver(showSnackBarEvent)
         }
     }
 
@@ -100,5 +110,14 @@ class SleepTrackerFragment : Fragment() {
                 actionSleepTrackerFragmentToSleepQualityFragment(night.nightId))
 
         sleepTrackerViewModel.doneNavigating()
+    }
+
+    private fun presentSnackBarEvent() {
+        Snackbar.make(
+                requireActivity().findViewById(android.R.id.content),
+                getString(R.string.cleared_message),
+                Snackbar.LENGTH_SHORT
+        ).show()
+        sleepTrackerViewModel.doneShowingSnackbar()
     }
 }
