@@ -51,14 +51,14 @@ class SleepTrackerFragment : Fragment() {
 
     private val showSnackBarEvent by lazy {
         Observer<Boolean> {
-            if(it == true)
+            if (it == true)
                 presentSnackBarEvent()
         }
     }
 
     private val showSleepNightItems by lazy {
         Observer<List<SleepNight>> { items ->
-                adapter.data = items ?: listOf()
+            items?.let { adapter.submitList(it) }
         }
     }
 
