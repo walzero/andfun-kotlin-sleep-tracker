@@ -41,6 +41,8 @@ class SleepTrackerFragment : Fragment() {
 
     private lateinit var sleepTrackerViewModel: SleepTrackerViewModel
 
+    private val adapter by lazy { SleepNightAdapter() }
+
     private val navigateToSleepQualityObserver by lazy {
         Observer<SleepNight> { night ->
             night?.let { navigateToSleepQualityFragment(it) }
@@ -51,6 +53,12 @@ class SleepTrackerFragment : Fragment() {
         Observer<Boolean> {
             if(it == true)
                 presentSnackBarEvent()
+        }
+    }
+
+    private val showSleepNightItems by lazy {
+        Observer<List<SleepNight>> { items ->
+                adapter.data = items ?: listOf()
         }
     }
 
@@ -77,6 +85,7 @@ class SleepTrackerFragment : Fragment() {
 
         binding.lifecycleOwner = this
         binding.sleepTrackerViewModel = sleepTrackerViewModel
+        binding.sleepList.adapter = adapter
 
         return binding.root
     }
@@ -95,6 +104,7 @@ class SleepTrackerFragment : Fragment() {
         with(sleepTrackerViewModel) {
             navigateToSleepQuality.observe(this@SleepTrackerFragment, navigateToSleepQualityObserver)
             showSnackbarEvent.observe(this@SleepTrackerFragment, showSnackBarEvent)
+            nights.observe(this@SleepTrackerFragment, showSleepNightItems)
         }
     }
 
@@ -102,6 +112,7 @@ class SleepTrackerFragment : Fragment() {
         with(sleepTrackerViewModel) {
             navigateToSleepQuality.removeObserver(navigateToSleepQualityObserver)
             showSnackbarEvent.removeObserver(showSnackBarEvent)
+            nights.removeObserver(showSleepNightItems)
         }
     }
 
