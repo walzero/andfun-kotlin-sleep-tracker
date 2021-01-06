@@ -49,7 +49,20 @@ class SleepTrackerFragment : Fragment() {
         sleepTrackerViewModel.onSleepNightClicked(nightId)
     }
 
-    private val gridManager by lazy { GridLayoutManager(requireActivity(), 3) }
+    private val gridManager by lazy {
+        GridLayoutManager(requireActivity(), 3).apply {
+            spanSizeLookup = gridSpanSizeLookup
+        }
+    }
+
+    private val gridSpanSizeLookup by lazy {
+        object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int = when (position) {
+                0 -> 3
+                else -> 1
+            }
+        }
+    }
 
     private val navigateToSleepQualityObserver by lazy {
         Observer<Long> { nightId ->
