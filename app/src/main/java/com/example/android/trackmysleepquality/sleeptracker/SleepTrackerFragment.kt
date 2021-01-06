@@ -20,6 +20,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -42,7 +43,11 @@ class SleepTrackerFragment : Fragment() {
 
     private lateinit var sleepTrackerViewModel: SleepTrackerViewModel
 
-    private val adapter by lazy { SleepNightAdapter() }
+    private val adapter by lazy { SleepNightAdapter(adapterListener) }
+
+    private val adapterListener = SleepNightListener { nightId ->
+        Toast.makeText(requireContext(), "${nightId}", Toast.LENGTH_SHORT).show()
+    }
 
     private val gridManager by lazy { GridLayoutManager(requireActivity(), 3) }
 
