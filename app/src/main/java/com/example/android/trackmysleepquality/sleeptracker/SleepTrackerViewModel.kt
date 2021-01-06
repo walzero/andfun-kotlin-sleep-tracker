@@ -31,11 +31,11 @@ class SleepTrackerViewModel(
         application: Application
 ) : AndroidViewModel(application) {
 
-    private val _navigateToSleepQuality = MutableLiveData<SleepNight>()
-    val navigateToSleepQuality: LiveData<SleepNight>
+    private val _navigateToSleepQuality = MutableLiveData<Long>()
+    val navigateToSleepQuality: LiveData<Long>
         get() = _navigateToSleepQuality
 
-    fun doneNavigating() {
+    fun onSleepQualityNavigated() {
         _navigateToSleepQuality.value = null
     }
 
@@ -61,6 +61,18 @@ class SleepTrackerViewModel(
 
     val clearButtonVisible = Transformations.map(nights) {
         it?.isNotEmpty()
+    }
+
+    private val _navigateToSleepDataQuality = MutableLiveData<Long>()
+    val navigateToSleepDataQuality
+        get() = _navigateToSleepDataQuality
+
+    fun onSleepNightClicked(id: Long) {
+        _navigateToSleepQuality.value = id
+    }
+
+    fun onSleepDataQualityNavigated() {
+        _navigateToSleepDataQuality.value = null
     }
 
     init {
@@ -105,7 +117,7 @@ class SleepTrackerViewModel(
             oldNight.endTimeMilli = System.currentTimeMillis()
 
             update(oldNight)
-            _navigateToSleepQuality.value = oldNight
+            _navigateToSleepQuality.value = oldNight.nightId
         }
     }
 

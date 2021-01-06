@@ -31,6 +31,7 @@ import com.example.android.trackmysleepquality.R
 import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.database.SleepNight
 import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerBinding
+import com.example.android.trackmysleepquality.sleeptracker.SleepTrackerFragmentDirections.actionSleepTrackerFragmentToSleepDetailFragment
 import com.example.android.trackmysleepquality.sleeptracker.SleepTrackerFragmentDirections.actionSleepTrackerFragmentToSleepQualityFragment
 import com.google.android.material.snackbar.Snackbar
 
@@ -46,14 +47,20 @@ class SleepTrackerFragment : Fragment() {
     private val adapter by lazy { SleepNightAdapter(adapterListener) }
 
     private val adapterListener = SleepNightListener { nightId ->
-        Toast.makeText(requireContext(), "${nightId}", Toast.LENGTH_SHORT).show()
+        sleepTrackerViewModel.onSleepNightClicked(nightId)
     }
 
     private val gridManager by lazy { GridLayoutManager(requireActivity(), 3) }
 
     private val navigateToSleepQualityObserver by lazy {
-        Observer<SleepNight> { night ->
-            night?.let { navigateToSleepQualityFragment(it) }
+        Observer<Long> { nightId ->
+            nightId?.let { navigateToSleepQualityFragment(it) }
+        }
+    }
+
+    private val navigateToSleepDataQualityObserver by lazy {
+        Observer<Long> { nightId ->
+            nightId?.let { navigateToSleepDataQualityFragment(it) }
         }
     }
 
@@ -112,6 +119,7 @@ class SleepTrackerFragment : Fragment() {
     private fun setObservers() {
         with(sleepTrackerViewModel) {
             navigateToSleepQuality.observe(this@SleepTrackerFragment, navigateToSleepQualityObserver)
+            navigateToSleepDataQuality.observe(this@SleepTrackerFragment, navigateToSleepDataQualityObserver)
             showSnackbarEvent.observe(this@SleepTrackerFragment, showSnackBarEvent)
             nights.observe(this@SleepTrackerFragment, showSleepNightItems)
         }
@@ -120,16 +128,24 @@ class SleepTrackerFragment : Fragment() {
     private fun removeObservers() {
         with(sleepTrackerViewModel) {
             navigateToSleepQuality.removeObserver(navigateToSleepQualityObserver)
+            navigateToSleepDataQuality.removeObserver(navigateToSleepDataQualityObserver)
             showSnackbarEvent.removeObserver(showSnackBarEvent)
             nights.removeObserver(showSleepNightItems)
         }
     }
 
-    private fun navigateToSleepQualityFragment(night: SleepNight) {
+    private fun navigateToSleepQualityFragment(nightId: Long) {
         findNavController().navigate(
-                actionSleepTrackerFragmentToSleepQualityFragment(night.nightId))
+                actionSleepTrackerFragmentToSleepQualityFragment(nightId))
 
-        sleepTrackerViewModel.doneNavigating()
+        sleepTrackerViewModel.onSleepQualityNavigated()
+    }
+
+    private fun navigateToSleepDataQualityFragment(nightId: Long) {
+        findNavController().navigate(
+                actionSleepTrackerFragmentToSleepDetailFragment(nightId))
+
+        sleepTrackerViewModel.onSleepDataQualityNavigated()
     }
 
     private fun presentSnackBarEvent() {
